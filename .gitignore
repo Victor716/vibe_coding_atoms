@@ -1,0 +1,50 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- Node ----
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+.eslintcache
+
+# ---- Env & secrets ----
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.local.example
+
+# ---- SQLite ----
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# ---- IDE / OS ----
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# ---- Logs / tmp ----
+logs/
+*.log
+tmp/
+.cache/
+
+# ---- Sandbox artifacts (ECS/agent 工作目录) ----
+sandbox/workdir/
+sandbox/ports.json

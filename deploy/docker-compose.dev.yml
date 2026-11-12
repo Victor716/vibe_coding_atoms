@@ -1,0 +1,35 @@
+# 本地兜底：不依赖 ECS 时用这份 compose 起 backend + sandbox-agent
+# 生产/ECS 场景请直接跑 sandbox/ 里的 uvicorn 进程，不要复用本文件
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ../backend
+    ports:
+      - "8000:8000"
+    environment:
+      LLM_BASE_URL: http://host.docker.internal:11434/v1
+      LLM_API_KEY: ollama
+      LLM_MODEL: qwen2.5-coder:7b
+      SANDBOX_BASE_URL: http://sandbox:9000
+      SANDBOX_FALLBACK_LOCAL: "true"
+      DATABASE_URL: sqlite+aiosqlite:///./app.db
+    volumes:
+      - ../backend:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  sandbox:
+    build:
+      context: ../sandbox
+    ports:
+      - "9000:9000"
+      - "10000-10100:10000-10100"
+    environment:
+      PORT_START: "10000"
+      PORT_END: "10100"
+      SANDBOX_IMAGE: nginx:alpine
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../sandbox/workdir:/workdir
