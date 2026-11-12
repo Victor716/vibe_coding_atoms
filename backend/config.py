@@ -17,8 +17,10 @@ class Settings(BaseSettings):
     # ---- LLM (Ollama OpenAI-compatible) ----
     llm_base_url: str = Field(default="http://localhost:11434/v1")
     llm_api_key: str = Field(default="ollama")
-    llm_model: str = Field(default="qwen2.5-coder:7b")
+    llm_model: str = Field(default="qwen3:8b")
     llm_stream: bool = Field(default=True)
+    # qwen3 等支持“思考模式”的模型：False 时直接输出 content，避免 SSE 卡在 reasoning_content
+    llm_think: bool = Field(default=False)
 
     # ---- Sandbox ----
     sandbox_base_url: str = Field(default="http://localhost:9000")

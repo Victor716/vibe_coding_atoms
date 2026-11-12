@@ -35,6 +35,9 @@ async def llm_stream(
         ],
         stream=True,
         temperature=0.3,
+        # qwen3 默认开思考，会先把 token 到 reasoning_content，导致 content 长时间为空。
+        # Ollama 将 `think` 作为顶层字段，extra_body 直接透传。非 qwen3 模型无感。
+        extra_body={"think": s.llm_think},
     )
     async for piece in stream:  # type: ignore[union-attr]
         delta = (piece.choices[0].delta.content or "") if piece.choices else ""

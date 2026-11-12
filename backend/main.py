@@ -1,8 +1,8 @@
 """FastAPI 入口：CORS + 路由注册 + lifespan 建表。"""
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

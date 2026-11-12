@@ -1,7 +1,7 @@
 """SQLModel 表：唯一实体 BuildSession。"""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from sqlmodel import Field, SQLModel
@@ -12,7 +12,7 @@ def new_uuid() -> str:
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class BuildSession(SQLModel, table=True):

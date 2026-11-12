@@ -23,16 +23,20 @@
 
 ```bash
 # 1) 起本地 Ollama 并拉一个 coding 模型
-ollama pull qwen2.5-coder:7b
+ollama pull qwen3:8b
 ollama serve                # 默认 http://localhost:11434
 
 # 2) 安装依赖（Makefile 会分别调用 pnpm / uv）
 make install
 
-# 3) 并行起 backend(:8000) + sandbox-agent(:9000) + frontend(:3000)
+# 3) （可选）M3 真沙箱需要本地 Docker Desktop 已启动，且拉下 nginx:alpine
+docker pull nginx:alpine
+
+# 4) 并行起 backend(:8000) + sandbox-agent(:9000) + frontend(:3000)
+#    需要真 Docker 部署时：ENABLE_DOCKER=true make dev
 make dev
 
-# 4) 冒烟：POST → SSE hello → done，验证 0:30 checkpoint
+# 5) 冒烟：POST → SSE 事件流 → done
 make smoke
 ```
 
@@ -48,7 +52,8 @@ make smoke
 | 维度 | 决策 |
 |------|------|
 | 数据层 | SQLModel + `sqlite+aiosqlite` + `AsyncSession`（后端规范强制） |
-| LLM | 本地 Ollama（OpenAI 兼容 `/v1`）；默认 `qwen2.5-coder:7b` |
+| LLM | 本地 Ollama（OpenAI 兼容 `/v1`）；默认 `qwen3:8b` |
+| Python | `>=3.11`，允许 3.13；不锁定 `.python-version`，优先使用系统 Python |
 | 沙箱 | `nginx:alpine` + 单文件 HTML 挂载；端口池 **10000–10100**（101 槽） |
 | CORS | FastAPI 侧配置；前端直连 `NEXT_PUBLIC_API_BASE`，**不引入 Next proxy** |
 | Mode | `standard / plan` 仅作记录字段，链路相同（默认都跑 PM + Engineer） |
@@ -59,11 +64,11 @@ make smoke
 
 | M | 目标 | 状态 |
 |---|------|------|
-| M0 | 契约冻结 | 已随骨架落地 |
-| M1 | 骨架 + Hello SSE（0:30 checkpoint） | 骨架已就位，需 `make smoke` 验证 |
-| M2 | LangGraph 双节点产出 `code` | 待接入 Ollama |
-| M3 | 沙箱部署返回 `preview_url` | 待接 Docker |
-| M4 | 三级降级可切换 | UI 已占位 |
+| M0 | 契约冻结 | ✅ |
+| M1 | 骨架 + Hello SSE（0:30 checkpoint） | ✅ |
+| M2 | LangGraph 双节点产出 `code` | ✅ 已接 Ollama |
+| M3 | 沙箱部署返回 `preview_url` | ✅ 已接 Docker SDK，需 `ENABLE_DOCKER=true` 启用 |
+| M4 | 三级降级可切换 | UI 已占位，待手动切换器 |
 | M5 | 历史回放 + UI 打磨 | 待完善 |
 
 ## 目录

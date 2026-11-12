@@ -2,7 +2,7 @@
 name = "vibe-backend"
 version = "0.1.0"
 description = "AI 应用构建平台 · FastAPI + LangGraph 后端"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]>=0.115",
     "sqlmodel>=0.0.22",

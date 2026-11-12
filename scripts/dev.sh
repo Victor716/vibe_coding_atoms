@@ -6,8 +6,8 @@ cd "$(dirname "$0")/.."
 cleanup() { jobs -p | xargs -r kill; }
 trap cleanup EXIT INT TERM
 
-( cd backend  && uvicorn main:app --reload --port 8000 ) &
-( cd sandbox  && uvicorn main:app --reload --port 9000 ) &
+( cd backend  && uv run uvicorn main:app --reload --port 8000 ) &
+( cd sandbox  && uv run uvicorn main:app --reload --port 9000 ) &
 ( cd frontend && pnpm dev ) &
 
 wait -n

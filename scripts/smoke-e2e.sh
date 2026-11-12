@@ -16,8 +16,8 @@ ID="$(printf '%s' "$RESP" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')"
 [[ -n "$ID" ]] || { echo "[smoke] missing id in response: $RESP"; exit 1; }
 echo "  → session id: $ID"
 
-echo "[smoke] GET /api/builds/$ID/stream (SSE, 5s 超时)"
-timeout 5 curl -sSf -N "$BASE/api/builds/$ID/stream" \
+echo "[smoke] GET /api/builds/$ID/stream (SSE, ${SSE_TIMEOUT:-240}s 超时)"
+curl -sSf -N --max-time "${SSE_TIMEOUT:-240}" "$BASE/api/builds/$ID/stream" \
   | tee /tmp/sse.out
 grep -q 'event: done' /tmp/sse.out || { echo "[smoke] no done event"; exit 1; }
 grep -q 'event: status' /tmp/sse.out || { echo "[smoke] no status event"; exit 1; }

@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 Mode = Literal["standard", "plan"]
 Status = Literal["pending", "running", "done", "failed"]
@@ -26,6 +26,8 @@ class BuildCreateResponse(BaseModel):
 
 
 class BuildSessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)   # 允许直接 model_validate(SQLModel ORM)
+
     id: str
     prompt: str
     mode: Mode

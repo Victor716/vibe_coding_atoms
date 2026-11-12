@@ -98,18 +98,18 @@ async def stream_build(
 
 
 async def _iter_with_persist(db: AsyncSession, session_id: str) -> AsyncIterator[PipelineEvent]:
-    """把 pipeline 事件写回 DB（PRD/code/preview_url），供回放。"""
+    """M2：持久化已下沉到 pipeline（基于最终 state 一次性写回）。
+
+    路由层不再重复写 prd/code，避免与 extract_code 结果冲突。
+    保留本层作为 M3 接 preview_url 事件时的扩展点。
+    """
     async for ev in run_pipeline(session_id, db):
-        if ev.type == "prd_delta":
-            await _append_field(db, session_id, "prd", str(ev.payload.get("text", "")))
-        elif ev.type == "code_delta":
-            await _append_field(db, session_id, "code", str(ev.payload.get("text", "")))
-        elif ev.type == "preview_url":
-            await _patch_field(db, session_id, "preview_url", str(ev.payload.get("url", "")))
         yield ev
 
 
-async def _append_field(db: AsyncSession, session_id: str, field: str, delta: str) -> None:
+async def _append_field(  # pragma: no cover
+    db: AsyncSession, session_id: str, field: str, delta: str
+) -> None:
     row = await db.get(BuildSession, session_id)
     if row is None:
         return
@@ -117,7 +117,9 @@ async def _append_field(db: AsyncSession, session_id: str, field: str, delta: st
     await db.commit()
 
 
-async def _patch_field(db: AsyncSession, session_id: str, field: str, value: str) -> None:
+async def _patch_field(  # pragma: no cover
+    db: AsyncSession, session_id: str, field: str, value: str
+) -> None:
     row = await db.get(BuildSession, session_id)
     if row is None:
         return

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createParser, type ParsedEvent, type ReconnectInterval } from "eventsource-parser";
+import { createParser, type EventSourceMessage } from "eventsource-parser";
 
 import { streamUrl } from "@/lib/api";
 import { parseEvent, type SseFrame } from "@/lib/events";
@@ -36,9 +36,16 @@ export function useBuildStream(sessionId: string): UseBuildStreamResult {
       setEvents((prev) => [...prev, parsed]);
     };
 
-    const parser = createParser((event: ParsedEvent | ReconnectInterval) => {
-      if (event.type !== "event") return;
-      onFrame({ event: event.name ?? "message", data: event.data });
+    const parser = createParser({
+      onEvent: (ev: EventSourceMessage) => {
+        onFrame({ event: ev.event || "message", data: ev.data });
+      },
+      onError: (err) => {
+        // 忽略未知字段（后端注释/心跳帧），只让致命解析错误上抛
+        if (err.type !== "unknown-field") {
+          setHasError(true);
+        }
+      },
     });
 
     (async () => {

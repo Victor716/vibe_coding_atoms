@@ -32,10 +32,10 @@ dev: ## 并行起 backend + sandbox + frontend（Ctrl+C 全部停）
 	@bash scripts/dev.sh
 
 backend-up: ## 单起 backend (:8000)
-	@cd $(BACKEND_DIR) && uvicorn main:app --reload --port 8000
+	@cd $(BACKEND_DIR) && uv run uvicorn main:app --reload --port 8000
 
 sandbox-up: ## 单起 sandbox-agent (:9000)
-	@cd $(SANDBOX_DIR) && uvicorn main:app --reload --port 9000
+	@cd $(SANDBOX_DIR) && uv run uvicorn main:app --reload --port 9000
 
 frontend-up: ## 单起 frontend (:3000)
 	@cd $(FRONTEND_DIR) && pnpm dev
@@ -44,7 +44,7 @@ frontend-up: ## 单起 frontend (:3000)
 lint: lint-backend lint-frontend ## 全量 lint
 
 lint-backend:
-	@cd $(BACKEND_DIR) && ruff check . && mypy .
+	@cd $(BACKEND_DIR) && uv run ruff check . && uv run mypy .
 
 lint-frontend:
 	@cd $(FRONTEND_DIR) && pnpm tsc --noEmit && pnpm lint
@@ -52,7 +52,7 @@ lint-frontend:
 test: test-backend test-frontend ## 全量测试
 
 test-backend:
-	@cd $(BACKEND_DIR) && pytest -q
+	@cd $(BACKEND_DIR) && uv run pytest -q
 
 test-frontend:
 	@cd $(FRONTEND_DIR) && pnpm test --run
