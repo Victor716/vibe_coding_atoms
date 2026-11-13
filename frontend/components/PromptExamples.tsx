@@ -41,7 +41,7 @@ interface Props {
 /** 首页 preset 芯片：点击把 prompt 填进 textarea，不自动提交。 */
 export function PromptExamples({ onPick, disabled, className }: Props) {
   return (
-    <div className={cn("flex flex-wrap gap-2", className)}>
+    <div className={cn("flex flex-wrap gap-1.5 px-2 pb-1", className)}>
       {PROMPT_EXAMPLES.map((ex) => (
         <button
           key={ex.label}
@@ -50,15 +50,12 @@ export function PromptExamples({ onPick, disabled, className }: Props) {
           onClick={() => onPick(ex.prompt)}
           title={ex.prompt}
           className={cn(
-            "group flex flex-col items-start rounded-full border border-border bg-card px-3 py-1.5 text-left text-xs transition",
-            "hover:border-primary hover:bg-primary hover:text-primary-foreground",
+            "rounded-full border border-border/60 bg-muted/50 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition",
+            "hover:border-border hover:bg-muted hover:text-foreground",
             "disabled:cursor-not-allowed disabled:opacity-50",
           )}
         >
-          <span className="font-medium">{ex.label}</span>
-          <span className="text-[10px] text-muted-foreground group-hover:text-primary-foreground/70">
-            {ex.hint}
-          </span>
+          {ex.label}
         </button>
       ))}
     </div>

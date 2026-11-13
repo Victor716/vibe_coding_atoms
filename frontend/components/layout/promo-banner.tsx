@@ -1,12 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { cn } from "@/lib/utils";
-
-/** 可关闭促销横幅；状态存 localStorage("promo-hidden")。 */
+/** 可关闭促销横幅；periwinkle 浅蓝紫底 + 深色文字 + 品牌蓝 CTA 胶囊。 */
 export function PromoBanner() {
-  const [hidden, setHidden] = useState(true); // 默认隐藏避免 SSR hydration flash
+  const [hidden, setHidden] = useState(true);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -23,15 +22,26 @@ export function PromoBanner() {
   if (hidden || !visible) return null;
 
   return (
-    <div className={cn("flex h-10 items-center justify-center gap-2 bg-accent px-4 text-xs text-accent-foreground")}>
-      <span>🎉 沙箱部署已上线，试试输入 prompt 一键生成可预览的应用</span>
+    <div className="flex h-11 items-center justify-center gap-3 bg-[var(--promo-bg)] px-4 text-sm text-foreground">
+      <span className="font-medium">沙箱部署已上线，一键生成可预览的应用</span>
+      <Link
+        href="/"
+        className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-brand px-3 text-xs font-medium text-white transition hover:bg-brand-dark"
+      >
+        开始使用
+        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </Link>
       <button
         type="button"
         onClick={dismiss}
         aria-label="关闭横幅"
-        className="ml-2 rounded px-1.5 py-0.5 text-[10px] font-medium hover:bg-accent-foreground/20"
+        className="ml-1 flex h-5 w-5 items-center justify-center rounded-full text-foreground/50 transition hover:bg-black/5 hover:text-foreground"
       >
-        ✕
+        <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
   );
