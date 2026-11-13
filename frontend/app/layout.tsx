@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+import { ThemeProvider } from "@/hooks/use-theme";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -8,12 +11,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN">
-      <body className="min-h-screen antialiased">
-        <header className="border-b bg-white px-6 py-3 text-sm font-medium">
-          vibe_coding · AI 应用构建平台（Atoms 复刻）
-        </header>
-        <main className="mx-auto max-w-5xl p-6">{children}</main>
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

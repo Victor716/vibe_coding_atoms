@@ -11,7 +11,8 @@ services:
     environment:
       LLM_BASE_URL: http://host.docker.internal:11434/v1
       LLM_API_KEY: ollama
-      LLM_MODEL: qwen3:8b
+      LLM_MODEL: qwen2.5-coder:7b
+      LLM_THINK: "false"
       SANDBOX_BASE_URL: http://sandbox:9000
       SANDBOX_FALLBACK_LOCAL: "true"
       DATABASE_URL: sqlite+aiosqlite:///./app.db

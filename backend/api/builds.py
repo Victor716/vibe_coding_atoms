@@ -59,8 +59,8 @@ async def list_builds(
     limit: int = 20,
 ) -> BuildListResponse:
     stmt = select(BuildSession).order_by(BuildSession.created_at.desc()).limit(limit)
-    res = await db.exec(stmt)
-    items = list(res.all())
+    res = await db.execute(stmt)
+    items = list(res.scalars().all())
     return BuildListResponse(
         items=[BuildSessionResponse.model_validate(x) for x in items]
     )
@@ -79,9 +79,33 @@ async def get_build(
 async def stream_build(
     session_id: str,
     db: AsyncSession = Depends(get_db),
+    force: bool = False,
 ) -> EventSourceResponse:
-    """M1 Hello-SSE；M2 换成 run_pipeline(graph) 版本，本函数体不变。"""
+    """SSE：
+
+    - pending / running → 真跑 pipeline
+    - done 且 force=false → 回放（从 DB 快照合成同构事件，不再调 LLM）
+    - failed 且 force=false → error + done
+    - force=true → 强制重跑 pipeline（前端“重跑”按钮）
+    """
     row = await _get_or_404(db, session_id)
+
+    if not force and row.status == "done":
+        async def replay_gen() -> AsyncIterator[dict[str, str]]:
+            async for ev in _iter_replay(row):
+                yield {"event": ev.type, "data": json.dumps(ev.payload, ensure_ascii=False)}
+
+        return EventSourceResponse(replay_gen())
+
+    if not force and row.status == "failed":
+        async def failed_gen() -> AsyncIterator[dict[str, str]]:
+            err = PipelineEvent.error(row.error or "build failed")
+            yield {"event": err.type, "data": json.dumps(err.payload, ensure_ascii=False)}
+            done = PipelineEvent.done()
+            yield {"event": done.type, "data": json.dumps(done.payload, ensure_ascii=False)}
+
+        return EventSourceResponse(failed_gen())
+
     await _mark(db, row, "running")
 
     async def event_gen() -> AsyncIterator[dict[str, str]]:
@@ -95,6 +119,25 @@ async def stream_build(
             yield {"event": err.type, "data": json.dumps(err.payload, ensure_ascii=False)}
 
     return EventSourceResponse(event_gen())
+
+
+async def _iter_replay(row: BuildSession) -> AsyncIterator[PipelineEvent]:
+    """done 会话回放：用 DB 快照合成一份与 pipeline 同构的事件序列。
+
+    前端契约不变：status(prm) → prd_delta → status(engineer) → code_delta
+                     → status(sandbox) → [preview_url] → done
+    历史 code 已是 extract_code 后的干净 HTML，一次性推 code_delta 即可。
+    """
+    if row.prd:
+        yield PipelineEvent.status("pm")
+        yield PipelineEvent.prd_delta(row.prd)
+    if row.code:
+        yield PipelineEvent.status("engineer")
+        yield PipelineEvent.code_delta(row.code)
+    yield PipelineEvent.status("sandbox")
+    if row.preview_url:
+        yield PipelineEvent.preview_url(row.preview_url)
+    yield PipelineEvent.done()
 
 
 async def _iter_with_persist(db: AsyncSession, session_id: str) -> AsyncIterator[PipelineEvent]:

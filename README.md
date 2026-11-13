@@ -23,7 +23,7 @@
 
 ```bash
 # 1) 起本地 Ollama 并拉一个 coding 模型
-ollama pull qwen3:8b
+ollama pull qwen2.5-coder:7b
 ollama serve                # 默认 http://localhost:11434
 
 # 2) 安装依赖（Makefile 会分别调用 pnpm / uv）
@@ -52,7 +52,7 @@ make smoke
 | 维度 | 决策 |
 |------|------|
 | 数据层 | SQLModel + `sqlite+aiosqlite` + `AsyncSession`（后端规范强制） |
-| LLM | 本地 Ollama（OpenAI 兼容 `/v1`）；默认 `qwen3:8b` |
+| LLM | 本地 Ollama（OpenAI 兼容 `/v1`）；默认 `qwen2.5-coder:7b`；切 `qwen3` 时自动走 `LLM_THINK=false` 绕过思考模式 |
 | Python | `>=3.11`，允许 3.13；不锁定 `.python-version`，优先使用系统 Python |
 | 沙箱 | `nginx:alpine` + 单文件 HTML 挂载；端口池 **10000–10100**（101 槽） |
 | CORS | FastAPI 侧配置；前端直连 `NEXT_PUBLIC_API_BASE`，**不引入 Next proxy** |

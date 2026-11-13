@@ -11,9 +11,12 @@ import pytest
 from httpx import AsyncClient
 
 
-async def _collect_sse(client: AsyncClient, sid: str) -> list[tuple[str, dict]]:
+async def _collect_sse(
+    client: AsyncClient, sid: str, *, force: bool = False
+) -> list[tuple[str, dict]]:
     events: list[tuple[str, dict]] = []
-    async with client.stream("GET", f"/api/builds/{sid}/stream") as resp:
+    url = f"/api/builds/{sid}/stream" + ("?force=true" if force else "")
+    async with client.stream("GET", url) as resp:
         assert resp.status_code == 200
         current: str | None = None
         async for raw in resp.aiter_lines():
@@ -97,3 +100,66 @@ async def test_stream_falls_back_to_srcdoc_when_sandbox_returns_none(
 async def test_stream_404(client: AsyncClient) -> None:
     r = await client.get("/api/builds/nope/stream")
     assert r.status_code == 404
+
+
+async def test_done_session_stream_replays_without_llm(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """P0-#2：done 会话默认 GET /stream 应走回放，不能再调 LLM。"""
+    # 先真跑一次（conftest 默认 fake_stream 会推进）
+    r = await client.post("/api/builds", json={"prompt": "ping"})
+    sid = r.json()["id"]
+    await _collect_sse(client, sid)
+
+    # 把 llm_stream 换成“只要被调就写黑”版本
+    calls: list[str] = []
+
+    async def _spy(
+        *, system: str, user: str, on_delta=None  # type: ignore[no-untyped-def]
+    ) -> str:
+        calls.append(system[:16])
+        return "SHOULD_NOT_APPEAR"
+
+    monkeypatch.setattr("graph.nodes.llm_stream", _spy)
+
+    events = await _collect_sse(client, sid)
+    assert calls == [], "done 回放不应触发 llm_stream"
+
+    types = [t for t, _ in events]
+    # 回放事件序列与首次 pipeline 同构（但 prd/code 均一次性推）
+    assert "prd_delta" in types
+    assert "code_delta" in types
+    assert types[-1] == "done"
+
+    # 回放里 prd/code 直接就是 DB 里的内容
+    prd_text = "".join(p["text"] for t, p in events if t == "prd_delta")
+    code_text = "".join(p["text"] for t, p in events if t == "code_delta")
+    detail = (await client.get(f"/api/builds/{sid}")).json()
+    assert prd_text == detail["prd"]
+    assert code_text == detail["code"]
+    assert "SHOULD_NOT_APPEAR" not in prd_text
+    assert "SHOULD_NOT_APPEAR" not in code_text
+
+
+async def test_force_true_ignores_done_and_reruns(
+    client: AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """P0-#2：?force=true 时后端无视 done 强制重跑 pipeline。"""
+    r = await client.post("/api/builds", json={"prompt": "ping"})
+    sid = r.json()["id"]
+    await _collect_sse(client, sid)
+
+    calls: list[str] = []
+
+    async def _spy(
+        *, system: str, user: str, on_delta=None  # type: ignore[no-untyped-def]
+    ) -> str:
+        calls.append(system[:16])
+        # 直接返回空内容 → extract_code("") == ""，DB 里 code 会变空
+        return ""
+
+    monkeypatch.setattr("graph.nodes.llm_stream", _spy)
+
+    await _collect_sse(client, sid, force=True)
+    # pm + engineer 各 once → 2 次
+    assert len(calls) == 2

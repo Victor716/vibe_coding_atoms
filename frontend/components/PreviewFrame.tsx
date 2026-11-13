@@ -10,19 +10,19 @@ export function PreviewFrame({ previewUrl, code }: Props) {
   // key=url 确保仅在 URL 变更时重载 iframe，避免流式期间反复闪烁（前端规范 §流式渲染）
   if (previewUrl) {
     return (
-      <section className="flex flex-col gap-2 rounded-lg border bg-white p-3">
-        <h3 className="text-xs font-semibold text-neutral-500">预览（沙箱）</h3>
+      <section className="flex flex-col gap-2 rounded-lg border bg-card p-3">
+        <h3 className="text-xs font-semibold text-muted-foreground">预览（沙箱）</h3>
         <iframe
           key={previewUrl}
           src={previewUrl}
           title="preview"
-          className="h-96 w-full rounded border"
+          className="h-96 w-full rounded border border-border"
         />
         <a
           href={previewUrl}
           target="_blank"
           rel="noreferrer"
-          className="text-xs text-neutral-500 underline"
+          className="text-xs text-muted-foreground underline"
         >
           在新窗口打开
         </a>
@@ -32,23 +32,23 @@ export function PreviewFrame({ previewUrl, code }: Props) {
 
   if (code) {
     return (
-      <section className="flex flex-col gap-2 rounded-lg border bg-white p-3">
-        <h3 className="text-xs font-semibold text-neutral-500">预览（L2 · srcDoc 降级）</h3>
+      <section className="flex flex-col gap-2 rounded-lg border bg-card p-3">
+        <h3 className="text-xs font-semibold text-muted-foreground">预览（L2 · srcDoc 降级）</h3>
         <iframe
           key={code.length}
           srcDoc={code}
           title="preview-srcdoc"
           sandbox="allow-scripts"
-          className="h-96 w-full rounded border"
+          className="h-96 w-full rounded border border-border"
         />
       </section>
     );
   }
 
   return (
-    <section className="flex flex-col gap-2 rounded-lg border bg-white p-3">
-      <h3 className="text-xs font-semibold text-neutral-500">预览</h3>
-      <div className="flex h-96 items-center justify-center rounded bg-neutral-50 text-xs text-neutral-400">
+    <section className="flex flex-col gap-2 rounded-lg border bg-card p-3">
+      <h3 className="text-xs font-semibold text-muted-foreground">预览</h3>
+      <div className="flex h-96 items-center justify-center rounded bg-muted text-xs text-muted-foreground">
         等待沙箱 preview_url…
       </div>
     </section>

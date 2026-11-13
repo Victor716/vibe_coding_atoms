@@ -46,7 +46,11 @@ export async function getHealth(): Promise<HealthResponse> {
   return jsonOrThrow<HealthResponse>(res);
 }
 
-/** 拼 SSE URL，交给 use-build-stream 用 fetch + AbortController 打开。 */
-export function streamUrl(id: string): string {
-  return `${BASE}/api/builds/${id}/stream`;
+/** 拼 SSE URL，交给 use-build-stream 用 fetch + AbortController 打开。
+ *
+ * force=true → 后端无视 done 状态强制重跑 pipeline（“重跑”按钮使用）。
+ */
+export function streamUrl(id: string, opts?: { force?: boolean }): string {
+  const qs = opts?.force ? "?force=true" : "";
+  return `${BASE}/api/builds/${id}/stream${qs}`;
 }

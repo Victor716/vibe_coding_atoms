@@ -7,12 +7,13 @@ import { ApiError, createBuild } from "@/lib/api";
 import type { Mode } from "@/types/build";
 
 interface Props {
-  defaultValue?: string;
+  /** 受控 value；父层持有以便 examples 芯片能填充。 */
+  value: string;
+  onChange: (next: string) => void;
 }
 
-export function PromptInput({ defaultValue = "" }: Props) {
+export function PromptInput({ value, onChange }: Props) {
   const router = useRouter();
-  const [value, setValue] = useState(defaultValue);
   const [mode, setMode] = useState<Mode>("standard");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,10 +37,10 @@ export function PromptInput({ defaultValue = "" }: Props) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <textarea
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         rows={4}
         placeholder="例如：帮我做一个贪吃蛇小游戏"
-        className="w-full resize-y rounded-md border bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-neutral-900"
+        className="w-full resize-y rounded-md border bg-card p-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
       />
       <div className="flex flex-wrap items-center gap-3">
         <label className="flex items-center gap-2 text-xs">
@@ -47,7 +48,7 @@ export function PromptInput({ defaultValue = "" }: Props) {
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value as Mode)}
-            className="rounded border bg-white px-2 py-1 text-xs"
+            className="rounded border bg-card px-2 py-1 text-xs text-foreground"
           >
             <option value="standard">standard</option>
             <option value="plan">plan</option>
@@ -56,11 +57,11 @@ export function PromptInput({ defaultValue = "" }: Props) {
         <button
           type="submit"
           disabled={isSubmitting || !value.trim()}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
         >
           {isSubmitting ? "提交中…" : "开始构建"}
         </button>
-        {error && <span className="text-sm text-red-600">{error}</span>}
+        {error && <span className="text-sm text-destructive">{error}</span>}
       </div>
     </form>
   );

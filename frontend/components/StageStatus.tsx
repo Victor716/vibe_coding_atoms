@@ -21,13 +21,13 @@ export function StageStatus({ stage, isStreaming, hasError }: Props) {
       <span
         className={cn(
           "rounded-full px-3 py-1 font-medium",
-          isStreaming ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800",
-          hasError && "bg-red-100 text-red-800",
+          isStreaming ? "bg-warning/10 text-warning" : "bg-success/10 text-success",
+          hasError && "bg-destructive/10 text-destructive",
         )}
       >
         {hasError ? "错误" : isStreaming ? "构建中" : "已完成"}
       </span>
-      {stage && <span className="text-neutral-500">当前：{LABEL[stage]}</span>}
+      {stage && <span className="text-muted-foreground">当前：{LABEL[stage]}</span>}
     </div>
   );
 }
